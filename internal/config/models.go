@@ -13,7 +13,7 @@ type CalculateSystem struct {
 }
 
 type DataBase struct {
-	DatabaseDsn string `json:"DatabaseDsn" env:"DATABASE_DSN" flag:"d" validate:"required"`
+	DatabaseDsn string `json:"DatabaseDsn" env:"DATABASE_URI" flag:"d" validate:"required"`
 }
 
 type HTTPServer struct {
