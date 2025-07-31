@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -28,8 +27,6 @@ func (h *Handler) createOrder(c echo.Context) error {
 	if echoErr != nil {
 		return echoErr
 	}
-
-	fmt.Printf("========\n%v\n", order.ID)
 
 	h.oService.Lock()
 	defer h.oService.Unlock()
@@ -58,14 +55,9 @@ func (h *Handler) getOrder(c echo.Context) error {
 		return echo.NewHTTPError(intErr.Code, intErr.Message)
 	}
 
-	for _, val := range list {
-		fmt.Printf("%v\n", *val)
+	if len(list) == 0 {
+		return c.NoContent(http.StatusNoContent) // Нет данных для ответа
 	}
-
-	// 500 => Внутренняя ошибка сервера
-	// 200 => Список загруженных номеров заказов
-	// 204 => Нет данных для ответа
-	// 401 => Пользователь не авторизован
 
 	return c.JSON(http.StatusOK, list)
 }
