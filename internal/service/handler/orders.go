@@ -32,7 +32,7 @@ func (h *Handler) createOrder(c echo.Context) error {
 
 	h.oService.Lock()
 	defer h.oService.Unlock()
-	success, intErr := h.oService.CreateOrder(order.Id, GetUserFromJWT(c))
+	success, intErr := h.oService.CreateOrder(order.ID, GetUserFromJWT(c))
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())
@@ -74,17 +74,17 @@ func (h *Handler) getOrderBody(c echo.Context) (*models.RequestOrder, *echo.HTTP
 		h.log.Errorf("failed to read body: %v", err)
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
 	}
-	requestOrder.Id = string(body)
+	requestOrder.ID = string(body)
 
 	return requestOrder, nil
 }
 
 func (h *Handler) createOrderStoreModel(order *models.RequestOrder) (*models2.Order, *echo.HTTPError) {
-	id, err := strconv.ParseInt(order.Id, 10, 64)
+	id, err := strconv.ParseInt(order.ID, 10, 64)
 	if err != nil {
 		h.log.Errorf("failed to convert str to int: %v", err)
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
 	}
 
-	return &models2.Order{Id: id}, nil
+	return &models2.Order{ID: id}, nil
 }

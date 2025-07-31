@@ -26,7 +26,7 @@ func (pg *PG) UnlockUser() {
 func (pg *PG) GetUser(login string) (*models.User, error) {
 	var user models.User
 	err := pg.dbpool.QueryRow(context.Background(), searchUserSQL, login).Scan(
-		&user.Id,
+		&user.ID,
 		&user.Login,
 		&user.PasswordHash,
 	)

@@ -26,19 +26,19 @@ func (o *OrderService) Unlock() {
 	o.pg.UnlockOrder()
 }
 
-func (o *OrderService) CreateOrder(orderId int64, user *models.User) (bool, *intError.CustomError) {
-	order, err := o.pg.GetOrder(orderId)
+func (o *OrderService) CreateOrder(orderID int64, user *models.User) (bool, *intError.CustomError) {
+	order, err := o.pg.GetOrder(orderID)
 	if err != nil {
 		return false, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get order: %v", err))
 	}
-	if order.UserId != 0 && order.UserId != user.Id {
+	if order.UserID != 0 && order.UserID != user.ID {
 		return false, intError.NewCustomError(http.StatusConflict, "Номер заказа уже был загружен другим пользователем", nil)
 	}
-	if order.UserId != 0 && order.UserId == user.Id {
+	if order.UserID != 0 && order.UserID == user.ID {
 		return false, nil
 	}
 
-	err = o.pg.SaveOrder(orderId, user.Id)
+	err = o.pg.SaveOrder(orderID, user.ID)
 	if err != nil {
 		return false, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed save order: %v", err))
 	}
@@ -47,7 +47,7 @@ func (o *OrderService) CreateOrder(orderId int64, user *models.User) (bool, *int
 }
 
 func (o *OrderService) GetListByUser(user *models.User) ([]*models.Order, *intError.CustomError) {
-	list, err := o.pg.GetListByUserId(user.Id)
+	list, err := o.pg.GetListByUserId(user.ID)
 	if err != nil {
 		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get list order: %v", err))
 	}

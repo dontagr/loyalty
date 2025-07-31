@@ -59,7 +59,7 @@ func (u *UserService) SignUp(login string, password string) (string, error) {
 		return "", err
 	}
 
-	jwtHash, err := u.jwtService.GetJWT(user.Id, user.Login)
+	jwtHash, err := u.jwtService.GetJWT(user.ID, user.Login)
 	if err != nil {
 		return "", fmt.Errorf("failed create jwt: %v", err)
 	}
@@ -73,7 +73,7 @@ func (u *UserService) SignIn(password string, user *models.User) (string, *intEr
 		return "", intErrors
 	}
 
-	jwtHash, err := u.jwtService.GetJWT(user.Id, user.Login)
+	jwtHash, err := u.jwtService.GetJWT(user.ID, user.Login)
 	if err != nil {
 		return "", intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed create jwt: %v", err))
 	}

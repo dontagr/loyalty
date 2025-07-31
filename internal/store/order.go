@@ -24,11 +24,11 @@ func (pg *PG) UnlockOrder() {
 	pg.orderMX.Unlock()
 }
 
-func (pg *PG) GetOrder(orderId int64) (*models.Order, error) {
+func (pg *PG) GetOrder(orderID int64) (*models.Order, error) {
 	var order models.Order
-	err := pg.dbpool.QueryRow(context.Background(), searchOrderSQL, orderId).Scan(
-		&order.Id,
-		&order.UserId,
+	err := pg.dbpool.QueryRow(context.Background(), searchOrderSQL, orderID).Scan(
+		&order.ID,
+		&order.UserID,
 		&order.Status,
 		&order.Accrual,
 		&order.CreateDateTime,
@@ -43,8 +43,8 @@ func (pg *PG) GetOrder(orderId int64) (*models.Order, error) {
 	return &order, nil
 }
 
-func (pg *PG) SaveOrder(orderId int64, userId int) error {
-	_, err := pg.dbpool.Exec(context.Background(), insertOrderSQL, orderId, userId)
+func (pg *PG) SaveOrder(orderID int64, userID int) error {
+	_, err := pg.dbpool.Exec(context.Background(), insertOrderSQL, orderID, userID)
 	if err != nil {
 		return fmt.Errorf("ошибка при сохранении пользователя: %w", err)
 	}
@@ -52,8 +52,8 @@ func (pg *PG) SaveOrder(orderId int64, userId int) error {
 	return nil
 }
 
-func (pg *PG) GetListByUserId(userId int) ([]*models.Order, error) {
-	rows, err := pg.dbpool.Query(context.Background(), listOrderSQL, userId)
+func (pg *PG) GetListByUserId(userID int) ([]*models.Order, error) {
+	rows, err := pg.dbpool.Query(context.Background(), listOrderSQL, userID)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при извлечении метрик: %w", err)
 	}
@@ -62,7 +62,7 @@ func (pg *PG) GetListByUserId(userId int) ([]*models.Order, error) {
 	var result []*models.Order
 	for rows.Next() {
 		order := new(models.Order)
-		err := rows.Scan(&order.Id, &order.UserId, &order.Status, &order.Accrual, &order.CreateDateTime)
+		err := rows.Scan(&order.ID, &order.UserID, &order.Status, &order.Accrual, &order.CreateDateTime)
 		if err != nil {
 			return nil, fmt.Errorf("ошибка при сканировании заказа: %w", err)
 		}

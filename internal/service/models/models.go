@@ -6,6 +6,6 @@ type (
 		Password string `json:"password" validate:"required"`
 	}
 	RequestOrder struct {
-		Id string `validate:"required,number,algLuna"`
+		ID string `validate:"required,number,algLuna"`
 	}
 )

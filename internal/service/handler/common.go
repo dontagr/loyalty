@@ -138,7 +138,7 @@ func GetUserFromJWT(c echo.Context) *models.User {
 	claims := jwtUser.Claims.(*jwt2.JWTAuth)
 
 	return &models.User{
-		Id:    claims.Id,
+		ID:    claims.Id,
 		Login: claims.Login,
 	}
 }

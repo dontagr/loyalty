@@ -7,13 +7,13 @@ import (
 
 type (
 	User struct {
-		Id           int    `json:"id"`
+		ID           int    `json:"id"`
 		Login        string `json:"login"`
 		PasswordHash string `json:"password"`
 	}
 	Order struct {
-		Id             int64       `json:"id"`
-		UserId         int         `json:"user_id"`
+		ID             int64       `json:"id"`
+		UserID         int         `json:"user_id"`
 		Status         OrderStatus `json:"status"`
 		Accrual        *int        `json:"accrual,omitempty"`
 		CreateDateTime time.Time   `json:"uploaded_at"`
