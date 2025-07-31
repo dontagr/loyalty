@@ -29,7 +29,7 @@ func (f *FlagEnricher) Process(cnf *Config) error {
 	}
 	fmt.Println("==========")
 	fmt.Println(cnf.HTTPServer.BindAddress)
-	fmt.Println(serverAddrBind)
+	fmt.Println(*serverAddrBind)
 	fmt.Println("==========")
 
 	if *databaseDsn != "" {
@@ -37,7 +37,7 @@ func (f *FlagEnricher) Process(cnf *Config) error {
 	}
 	fmt.Println("==========")
 	fmt.Println(cnf.DataBase.DatabaseDsn)
-	fmt.Println(databaseDsn)
+	fmt.Println(*databaseDsn)
 	fmt.Println("==========")
 
 	if *calculateSystemURI != "" {
@@ -45,7 +45,7 @@ func (f *FlagEnricher) Process(cnf *Config) error {
 	}
 	fmt.Println("==========")
 	fmt.Println(cnf.CalculateSystem.URI)
-	fmt.Println(calculateSystemURI)
+	fmt.Println(*calculateSystemURI)
 	fmt.Println("==========")
 
 	return nil
