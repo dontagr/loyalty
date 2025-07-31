@@ -1,0 +1,216 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: User API
+  description: API для управления пользователями и заказами
+
+paths:
+  /api/user/register:
+    post:
+      summary: Регистрация пользователя
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+              required:
+                - login
+                - password
+      responses:
+        200:
+          description: Пользователь успешно зарегистрирован и аутентифицирован
+        400:
+          description: Неверный формат запроса
+        409:
+          description: Логин уже занят
+        500:
+          description: Внутренняя ошибка сервера
+
+  /api/user/login:
+    post:
+      summary: Аутентификация пользователя
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+              required:
+                - login
+                - password
+      responses:
+        200:
+          description: Пользователь успешно аутентифицирован
+        400:
+          description: Неверный формат запроса
+        401:
+          description: Неверная пара логин/пароль
+        500:
+          description: Внутренняя ошибка сервера
+
+  /api/user/orders:
+    post:
+      summary: Загрузка номера заказа
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        200:
+          description: Номер заказа уже был загружен этим пользователем
+        202:
+          description: Новый номер заказа принят в обработку
+        400:
+          description: Неверный формат запроса
+        401:
+          description: Пользователь не аутентифицирован
+        409:
+          description: Номер заказа уже был загружен другим пользователем
+        422:
+          description: Неверный формат номера заказа
+        500:
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+    get:
+      summary: Получение списка заказов
+      operationId: getOrder
+      responses:
+        200:
+          description: Список загруженных номеров заказов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    number:
+                      type: string
+                    status:
+                      type: string
+                      enum: ["NEW", "PROCESSING", "INVALID", "PROCESSED"]
+                    accrual:
+                      type: number
+                      nullable: true
+                    uploaded_at:
+                      type: string
+                      format: date-time
+        204:
+          description: Нет данных для ответа
+        401:
+          description: Пользователь не авторизован
+        500:
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+
+  /api/user/balance:
+    get:
+      summary: Получение текущего баланса
+      operationId: getBalance
+      responses:
+        200:
+          description: Текущий баланс пользователя
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current:
+                    type: number
+                  withdrawn:
+                    type: number
+        401:
+          description: Пользователь не авторизован
+        500:
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+
+  /api/user/balance/withdraw:
+    post:
+      summary: Запрос на снятие баллов
+      operationId: postBalanceWithdraw
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order:
+                  type: string
+                  description: Номер заказа
+                sum:
+                  type: number
+                  description: Сумма баллов к списанию
+              required:
+                - order
+                - sum
+      responses:
+        200:
+          description: Запрос на снятие успешно обработан
+        401:
+          description: Пользователь не авторизован
+        402:
+          description: На счету недостаточно средств
+        422:
+          description: Неверный номер заказа
+        500:
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+
+  /api/user/withdrawals:
+    get:
+      summary: Информация о выводе средств
+      operationId: getWithdraw
+      responses:
+        200:
+          description: Успешная обработка запроса
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    order:
+                      type: string
+                    sum:
+                      type: number
+                    processed_at:
+                      type: string
+                      format: date-time
+        204:
+          description: Нет ни одного списания
+        401:
+          description: Пользователь не авторизован
+        500:
+          description: Внутренняя ошибка сервера
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

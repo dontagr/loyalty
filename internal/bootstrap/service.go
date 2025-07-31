@@ -1,0 +1,17 @@
+package bootstrap
+
+import (
+	"go.uber.org/fx"
+
+	"github.com/dontagr/loyalty/internal/service/jwt"
+	"github.com/dontagr/loyalty/internal/service/order"
+	"github.com/dontagr/loyalty/internal/service/user"
+)
+
+var Service = fx.Options(
+	fx.Provide(
+		user.NewUserService,
+		jwt.NewJWTService,
+		order.NewOrderService,
+	),
+)
