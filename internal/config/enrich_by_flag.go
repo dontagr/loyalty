@@ -2,7 +2,6 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -27,26 +26,12 @@ func (f *FlagEnricher) Process(cnf *Config) error {
 	if *serverAddrBind != "" {
 		cnf.HTTPServer.BindAddress = *serverAddrBind
 	}
-	fmt.Println("==========")
-	fmt.Println(cnf.HTTPServer.BindAddress)
-	fmt.Println(*serverAddrBind)
-	fmt.Println("==========")
-
 	if *databaseDsn != "" {
 		cnf.DataBase.DatabaseDsn = *databaseDsn
 	}
-	fmt.Println("==========")
-	fmt.Println(cnf.DataBase.DatabaseDsn)
-	fmt.Println(*databaseDsn)
-	fmt.Println("==========")
-
 	if *calculateSystemURI != "" {
 		cnf.CalculateSystem.URI = *calculateSystemURI
 	}
-	fmt.Println("==========")
-	fmt.Println(cnf.CalculateSystem.URI)
-	fmt.Println(*calculateSystemURI)
-	fmt.Println("==========")
 
 	return nil
 }

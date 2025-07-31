@@ -30,6 +30,8 @@ func (h *Handler) createOrder(c echo.Context) error {
 		return echoErr
 	}
 
+	fmt.Printf("========\n%v\n", order.ID)
+
 	h.oService.Lock()
 	defer h.oService.Unlock()
 	success, intErr := h.oService.CreateOrder(order.ID, GetUserFromJWT(c))
@@ -57,7 +59,9 @@ func (h *Handler) getOrder(c echo.Context) error {
 		return echo.NewHTTPError(intErr.Code, intErr.Message)
 	}
 
-	fmt.Println(list)
+	for _, val := range list {
+		fmt.Printf("%v\n", *val)
+	}
 
 	// 500 => Внутренняя ошибка сервера
 	// 200 => Список загруженных номеров заказов
