@@ -1,17 +1,8 @@
 {
-  "HttpServing": {
-    "BindAddress": ":8080"
-  },
   "Logging": {
     "LogLevel": "INFO"
   },
-  "DataBase": {
-    "DatabaseDsn": "postgres://postgres:postgres@localhost:5432/loyalty"
-  },
   "Security": {
     "Key": "test"
-  },
-  "CalculateSystem": {
-    "URI": "test"
   }
 }

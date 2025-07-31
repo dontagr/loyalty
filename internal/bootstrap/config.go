@@ -20,7 +20,7 @@ func newConfig() (*configInternal.Config, error) {
 	cnf := &config.Config{
 		Data:             configInt,
 		DefaultFilePaths: []string{"../../../configs", "./configs"},
-		DefaultFileNames: []string{"config.json"},
+		DefaultFileNames: []string{"config.json", "config.dev.json"},
 	}
 
 	cnf.ReadFromFile()
