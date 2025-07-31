@@ -4,9 +4,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+
+	"github.com/dontagr/loyalty/internal/faultTolerance/pgretry"
 )
 
 const (
@@ -33,12 +34,12 @@ CREATE TABLE IF NOT EXISTS public."order" (
 type PG struct {
 	userMX  sync.RWMutex
 	orderMX sync.RWMutex
-	dbpool  *pgxpool.Pool
+	dbpool  *pgretry.PgxRetry
 	name    string
 	log     *zap.SugaredLogger
 }
 
-func RegisterStorePG(log *zap.SugaredLogger, dbpool *pgxpool.Pool, lc fx.Lifecycle) *PG {
+func RegisterStorePG(log *zap.SugaredLogger, dbpool *pgretry.PgxRetry, lc fx.Lifecycle) *PG {
 	pg := PG{
 		dbpool: dbpool,
 		log:    log,

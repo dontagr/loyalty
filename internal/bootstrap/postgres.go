@@ -8,11 +8,13 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/dontagr/loyalty/internal/config"
+	"github.com/dontagr/loyalty/internal/faultTolerance/pgretry"
 )
 
 var Postgres = fx.Options(
 	fx.Provide(
 		newPostgresConnect,
+		pgretry.NewPgxRetry,
 	),
 )
 
