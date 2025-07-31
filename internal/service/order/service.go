@@ -26,7 +26,7 @@ func (o *OrderService) Unlock() {
 	o.pg.UnlockOrder()
 }
 
-func (o *OrderService) CreateOrder(orderID int64, user *models.User) (bool, *intError.CustomError) {
+func (o *OrderService) CreateOrder(orderID string, user *models.User) (bool, *intError.CustomError) {
 	order, err := o.pg.GetOrder(orderID)
 	if err != nil {
 		return false, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get order: %v", err))

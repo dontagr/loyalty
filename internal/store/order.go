@@ -24,7 +24,7 @@ func (pg *PG) UnlockOrder() {
 	pg.orderMX.Unlock()
 }
 
-func (pg *PG) GetOrder(orderID int64) (*models.Order, error) {
+func (pg *PG) GetOrder(orderID string) (*models.Order, error) {
 	var order models.Order
 	err := pg.dbpool.QueryRow(context.Background(), searchOrderSQL, orderID).Scan(
 		&order.ID,
@@ -43,7 +43,7 @@ func (pg *PG) GetOrder(orderID int64) (*models.Order, error) {
 	return &order, nil
 }
 
-func (pg *PG) SaveOrder(orderID int64, userID int) error {
+func (pg *PG) SaveOrder(orderID string, userID int) error {
 	_, err := pg.dbpool.Exec(context.Background(), insertOrderSQL, orderID, userID)
 	if err != nil {
 		return fmt.Errorf("ошибка при сохранении пользователя: %w", err)

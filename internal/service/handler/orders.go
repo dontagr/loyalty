@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -84,11 +83,5 @@ func (h *Handler) getOrderBody(c echo.Context) (*models.RequestOrder, *echo.HTTP
 }
 
 func (h *Handler) createOrderStoreModel(order *models.RequestOrder) (*models2.Order, *echo.HTTPError) {
-	id, err := strconv.ParseInt(order.ID, 10, 64)
-	if err != nil {
-		h.log.Errorf("failed to convert str to int: %v", err)
-		return nil, echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
-	}
-
-	return &models2.Order{ID: id}, nil
+	return &models2.Order{ID: order.ID}, nil
 }

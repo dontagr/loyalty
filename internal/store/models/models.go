@@ -12,7 +12,7 @@ type (
 		PasswordHash string `json:"password"`
 	}
 	Order struct {
-		ID             int64       `json:"number"`
+		ID             string      `json:"number"`
 		UserID         int         `json:"-"`
 		Status         OrderStatus `json:"status"`
 		Accrual        *int        `json:"accrual,omitempty"`
