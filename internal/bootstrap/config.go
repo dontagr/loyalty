@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"fmt"
+
 	"go.uber.org/fx"
 
 	configInternal "github.com/dontagr/loyalty/internal/config"
@@ -38,6 +40,12 @@ func newConfig() (*configInternal.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("==========")
+	fmt.Println(configInt.HTTPServer.BindAddress)
+	fmt.Println(configInt.DataBase.DatabaseDsn)
+	fmt.Println(configInt.CalculateSystem.URI)
+	fmt.Println("==========")
 
 	return configInt, nil
 }

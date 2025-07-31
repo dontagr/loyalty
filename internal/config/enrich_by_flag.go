@@ -25,26 +25,28 @@ func (f *FlagEnricher) Process(cnf *Config) error {
 		return err
 	}
 	if *serverAddrBind != "" {
-		fmt.Println("==========")
-		fmt.Println(cnf.HTTPServer.BindAddress)
-		fmt.Println(serverAddrBind)
-		fmt.Println("==========")
 		cnf.HTTPServer.BindAddress = *serverAddrBind
 	}
+	fmt.Println("==========")
+	fmt.Println(cnf.HTTPServer.BindAddress)
+	fmt.Println(serverAddrBind)
+	fmt.Println("==========")
+
 	if *databaseDsn != "" {
-		fmt.Println("==========")
-		fmt.Println(cnf.DataBase.DatabaseDsn)
-		fmt.Println(databaseDsn)
-		fmt.Println("==========")
 		cnf.DataBase.DatabaseDsn = *databaseDsn
 	}
+	fmt.Println("==========")
+	fmt.Println(cnf.DataBase.DatabaseDsn)
+	fmt.Println(databaseDsn)
+	fmt.Println("==========")
+
 	if *calculateSystemURI != "" {
-		fmt.Println("==========")
-		fmt.Println(cnf.CalculateSystem.URI)
-		fmt.Println(calculateSystemURI)
-		fmt.Println("==========")
 		cnf.CalculateSystem.URI = *calculateSystemURI
 	}
+	fmt.Println("==========")
+	fmt.Println(cnf.CalculateSystem.URI)
+	fmt.Println(calculateSystemURI)
+	fmt.Println("==========")
 
 	return nil
 }
