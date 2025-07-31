@@ -52,7 +52,7 @@ func (pg *PG) SaveOrder(orderID int64, userID int) error {
 	return nil
 }
 
-func (pg *PG) GetListByUserId(userID int) ([]*models.Order, error) {
+func (pg *PG) GetListByUserID(userID int) ([]*models.Order, error) {
 	rows, err := pg.dbpool.Query(context.Background(), listOrderSQL, userID)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при извлечении метрик: %w", err)

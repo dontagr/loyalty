@@ -13,7 +13,7 @@ type (
 		key string
 	}
 	JWTAuth struct {
-		Id    int    `json:"id"`
+		ID    int    `json:"id"`
 		Login string `json:"login"`
 		jwt.RegisteredClaims
 	}
@@ -23,9 +23,9 @@ func NewJWTService(cnf *config.Config) *JWTService {
 	return &JWTService{key: cnf.Security.Key}
 }
 
-func (j *JWTService) GetJWT(Id int, Login string) (string, error) {
+func (j *JWTService) GetJWT(ID int, Login string) (string, error) {
 	claims := &JWTAuth{
-		Id,
+		ID,
 		Login,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),

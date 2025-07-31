@@ -47,7 +47,7 @@ func (o *OrderService) CreateOrder(orderID int64, user *models.User) (bool, *int
 }
 
 func (o *OrderService) GetListByUser(user *models.User) ([]*models.Order, *intError.CustomError) {
-	list, err := o.pg.GetListByUserId(user.ID)
+	list, err := o.pg.GetListByUserID(user.ID)
 	if err != nil {
 		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get list order: %v", err))
 	}
