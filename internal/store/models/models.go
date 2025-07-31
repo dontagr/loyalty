@@ -12,8 +12,8 @@ type (
 		PasswordHash string `json:"password"`
 	}
 	Order struct {
-		ID             int64       `json:"id"`
-		UserID         int         `json:"user_id"`
+		ID             int64       `json:"number"`
+		UserID         int         `json:"-"`
 		Status         OrderStatus `json:"status"`
 		Accrual        *int        `json:"accrual,omitempty"`
 		CreateDateTime time.Time   `json:"uploaded_at"`
