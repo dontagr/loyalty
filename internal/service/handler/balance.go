@@ -1,21 +1,49 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 
 	"github.com/dontagr/loyalty/internal/service/models"
+	models2 "github.com/dontagr/loyalty/internal/store/models"
 )
 
 func (h *Handler) getBalance(c echo.Context) error {
-	fmt.Println(123)
-	// 200 => Текущий баланс пользователя
-	// 401 => Пользователь не авторизован
-	// 500 => Внутренняя ошибка сервера
+	jwtUser := GetUserFromJWT(c)
+	var waitGroup sync.WaitGroup
 
-	return c.String(http.StatusNotImplemented, "Temporary handler stub.")
+	var user *models2.User
+	var userErr error
+	waitGroup.Add(1)
+	go func() {
+		user, userErr = h.uService.GetUser(jwtUser.Login)
+		waitGroup.Done()
+	}()
+
+	var withdrawal float64
+	var withdrawalErr error
+	waitGroup.Add(1)
+	go func() {
+		withdrawal, withdrawalErr = h.wService.GetTotalWithdrawal(jwtUser.ID)
+		waitGroup.Done()
+	}()
+
+	waitGroup.Wait()
+	if withdrawalErr != nil {
+		h.log.Errorf("get total withdrawal failed: %v", withdrawalErr)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
+	}
+	if userErr != nil {
+		h.log.Errorf("get user failed: %v", userErr)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
+	}
+
+	return c.JSON(http.StatusOK, &models.ResponceWithdraw{
+		Balance:    user.Balance,
+		Withdrawal: withdrawal,
+	})
 }
 
 func (h *Handler) postBalanceWithdraw(c echo.Context) error {
@@ -25,6 +53,12 @@ func (h *Handler) postBalanceWithdraw(c echo.Context) error {
 
 		return echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
 	}
+	//
+	//jwtUser := GetUserFromJWT(c)
+	//user, err := h.uService.GetUser(jwtUser.Login)
+	//if err != nil {
+	//	return err
+	//}
 
 	h.log.Infof("Withdraw %v", requestWithdraw)
 	// 200 => Запрос на снятие успешно обработан

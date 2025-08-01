@@ -19,6 +19,7 @@ import (
 	jwt2 "github.com/dontagr/loyalty/internal/service/jwt"
 	"github.com/dontagr/loyalty/internal/service/order"
 	"github.com/dontagr/loyalty/internal/service/user"
+	"github.com/dontagr/loyalty/internal/service/withdrawal"
 	"github.com/dontagr/loyalty/internal/store/models"
 )
 
@@ -27,6 +28,7 @@ type (
 		log      *zap.SugaredLogger
 		uService *user.UserService
 		oService *order.OrderService
+		wService *withdrawal.WithdrawalService
 	}
 	CustomValidator struct {
 		validator *validator.Validate
@@ -38,6 +40,7 @@ func NewHandler(
 	server *httpserver.HTTPServer,
 	uService *user.UserService,
 	oService *order.OrderService,
+	wService *withdrawal.WithdrawalService,
 	log *zap.SugaredLogger,
 	lc fx.Lifecycle,
 ) *Handler {
@@ -45,6 +48,7 @@ func NewHandler(
 		log:      log,
 		uService: uService,
 		oService: oService,
+		wService: wService,
 	}
 
 	jwtConfig := echojwt.Config{

@@ -7,6 +7,7 @@ import (
 	"github.com/dontagr/loyalty/internal/service/order"
 	"github.com/dontagr/loyalty/internal/service/transport"
 	"github.com/dontagr/loyalty/internal/service/user"
+	"github.com/dontagr/loyalty/internal/service/withdrawal"
 )
 
 var Service = fx.Options(
@@ -15,5 +16,6 @@ var Service = fx.Options(
 		jwt.NewJWTService,
 		order.NewOrderService,
 		transport.NewHTTPManager,
+		withdrawal.NewWithdrawalService,
 	),
 )

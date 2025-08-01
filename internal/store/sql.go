@@ -28,8 +28,18 @@ CREATE TABLE IF NOT EXISTS public."order" (
 	status int2 DEFAULT 0 NOT NULL,
 	create_dt timestamptz DEFAULT NOW() NOT NULL,
 	CONSTRAINT order_pk PRIMARY KEY (id),
-	CONSTRAINT order_id_idx UNIQUE (id,user_id)
-);`
+	CONSTRAINT order_id_idx UNIQUE (user_id,id)
+);
+
+CREATE TABLE IF NOT EXISTS public."withdrawal" (
+	id bigint NOT NULL,
+	user_id bigint NOT NULL,
+	withdrawal double precision DEFAULT NUll,
+	create_dt timestamptz DEFAULT NOW() NOT NULL,
+	CONSTRAINT withdrawal_pk PRIMARY KEY (id),
+	CONSTRAINT withdrawal_id_idx UNIQUE (user_id,id)
+);
+`
 )
 
 type PG struct {

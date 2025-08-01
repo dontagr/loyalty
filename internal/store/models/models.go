@@ -19,6 +19,12 @@ type (
 		Accrual        *float64    `json:"accrual,omitempty"`
 		CreateDateTime time.Time   `json:"uploaded_at"`
 	}
+	Withdrawal struct {
+		ID             string    `json:"order"`
+		UserID         int       `json:"-"`
+		Withdrawal     float64   `json:"sum"`
+		CreateDateTime time.Time `json:"processed_at"`
+	}
 	OrderStatus int
 )
 

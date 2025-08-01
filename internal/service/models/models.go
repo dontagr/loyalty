@@ -12,4 +12,8 @@ type (
 		Order string  `json:"order" validate:"required,alphanum|algLuna"`
 		Sum   float64 `json:"sum" validate:"required"`
 	}
+	ResponceWithdraw struct {
+		Balance    float64 `json:"current"`
+		Withdrawal float64 `json:"withdrawn"`
+	}
 )
