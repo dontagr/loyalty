@@ -36,6 +36,7 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 	var resp *http.Response
 	var netErr *net.OpError
 	var errSend error
+	var orderResponse *models.OrderResponse
 	for i := 0; i < 3; i++ {
 		resp, errSend = h.client.Do(req)
 		if errSend == nil {
@@ -45,8 +46,22 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 					h.log.Errorf("worker %d failed close body %v", w, err)
 				}
 			}(resp.Body, w)
+			if resp.StatusCode != http.StatusOK {
+				return nil, intError.NewCustomError(resp.StatusCode, "ошибка от системы расчета", fmt.Errorf("sending data: %v", errSend))
+			}
+
+			orderResponse = new(models.OrderResponse)
+			err = json.NewDecoder(resp.Body).Decode(orderResponse)
+			if err != nil {
+				return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("decoding response: %v", err))
+			}
 			break
 		}
+		err := resp.Body.Close()
+		if err != nil {
+			h.log.Errorf("worker %d failed close body %v", w, err)
+		}
+
 		if errors.As(errSend, &netErr) {
 			h.log.Warnf("worker %d connection error we try №%d", w, i+1)
 			time.Sleep(5 * time.Second)
@@ -57,16 +72,6 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 
 	if errSend != nil {
 		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("sending data: %v", errSend))
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, intError.NewCustomError(resp.StatusCode, "ошибка от системы расчета", fmt.Errorf("sending data: %v", errSend))
-	}
-
-	orderResponse := new(models.OrderResponse)
-	err = json.NewDecoder(resp.Body).Decode(orderResponse)
-	if err != nil {
-		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("decoding response: %v", err))
 	}
 
 	h.log.Infof("worker %d request success full", w)
