@@ -24,7 +24,7 @@ type HTTPManager struct {
 }
 
 func NewHTTPManager(cfg *config.Config, log *zap.SugaredLogger) *HTTPManager {
-	return &HTTPManager{urlPattern: "http://%s/api/orders/%s", log: log, client: &http.Client{}, cfg: cfg}
+	return &HTTPManager{urlPattern: "%s/api/orders/%s", log: log, client: &http.Client{}, cfg: cfg}
 }
 
 func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, *intError.CustomError) {
