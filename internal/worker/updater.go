@@ -52,6 +52,7 @@ func (upd *Updater) Handle() {
 
 	for {
 		time.Sleep(time.Duration(upd.interval) * time.Second)
+		upd.log.Infof("start planing")
 
 		processing, err := upd.pg.GetListForProcessing()
 		if err != nil {
@@ -59,9 +60,11 @@ func (upd *Updater) Handle() {
 			continue
 		}
 
+		upd.log.Infof("start send")
 		for _, order := range processing {
 			jobs <- order
 		}
+		upd.log.Infof("finish send")
 	}
 }
 
@@ -70,12 +73,12 @@ func (upd *Updater) worker(w int, jobs chan *models.Order) {
 	for row := range jobs {
 		request, err := upd.transport.NewRequest(row.ID, w)
 		if err != nil {
-			upd.log.Errorf("worker %d request error code:%d message:%s : %v", w, err.Code, err.Message, err.Err)
+			upd.log.Errorf("worker %d request orderID:%s error code:%d message:%s : %v", w, row.ID, err.Code, err.Message, err.Err)
 
 			if err.Code == http.StatusTooManyRequests {
 				time.Sleep(time.Duration(60) * time.Second)
 			}
-			return
+			continue
 		}
 
 		order := &models.Order{ID: row.ID, Accrual: &request.Accrual}

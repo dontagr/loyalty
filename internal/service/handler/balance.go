@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+
+	"github.com/dontagr/loyalty/internal/service/models"
 )
 
 func (h *Handler) getBalance(c echo.Context) error {
@@ -17,6 +19,14 @@ func (h *Handler) getBalance(c echo.Context) error {
 }
 
 func (h *Handler) postBalanceWithdraw(c echo.Context) error {
+	requestWithdraw := &models.RequestWithdraw{}
+	if err := c.Bind(requestWithdraw); err != nil {
+		h.log.Errorf("request failed: %v", err)
+
+		return echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
+	}
+
+	h.log.Infof("Withdraw %v", requestWithdraw)
 	// 200 => Запрос на снятие успешно обработан
 	// 401 => Пользователь не авторизован
 	// 402 => На счету недостаточно средств
