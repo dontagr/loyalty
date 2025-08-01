@@ -42,6 +42,8 @@ func (h *Handler) createOrder(c echo.Context) error {
 		return c.JSON(http.StatusOK, "Номер заказа уже был загружен этим пользователем")
 	}
 
+	h.log.Infof("Заказ=%s\n", order.ID)
+
 	return c.JSON(http.StatusAccepted, "Новый номер заказа принят в обработку")
 }
 
