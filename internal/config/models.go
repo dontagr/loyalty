@@ -6,6 +6,12 @@ type Config struct {
 	DataBase        DataBase        `json:"DataBase"`
 	Security        Security        `json:"Security"`
 	CalculateSystem CalculateSystem `json:"CalculateSystem"`
+	Service         Service         `json:"Service"`
+}
+
+type Service struct {
+	WorkerLimit     int `json:"WorkerLimit"`
+	UpdaterInterval int `json:"UpdaterInterval"`
 }
 
 type CalculateSystem struct {

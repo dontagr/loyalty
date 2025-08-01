@@ -4,5 +4,9 @@
   },
   "Security": {
     "Key": "test"
+  },
+  "Service": {
+    "WorkerLimit": 5,
+    "UpdaterInterval": 5
   }
 }

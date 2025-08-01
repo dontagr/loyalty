@@ -10,6 +10,7 @@ type (
 		ID           int    `json:"id"`
 		Login        string `json:"login"`
 		PasswordHash string `json:"password"`
+		Balance      int64
 	}
 	Order struct {
 		ID             string      `json:"number"`
@@ -22,17 +23,29 @@ type (
 )
 
 const (
-	StatusNEW OrderStatus = iota
-	StatusPROCESSING
+	StatusNew OrderStatus = iota
+	StatusProcessing
 	StatusInvalid
 	StatusProcessed
 )
 
 var statusToString = map[OrderStatus]string{
-	StatusNEW:        "NEW",
-	StatusPROCESSING: "PROCESSING",
+	StatusNew:        "NEW",
+	StatusProcessing: "PROCESSING",
 	StatusInvalid:    "INVALID",
 	StatusProcessed:  "PROCESSED",
+}
+var stringToStatus = map[string]OrderStatus{
+	"REGISTERED": StatusNew,
+	"PROCESSING": StatusProcessing,
+	"INVALID":    StatusInvalid,
+	"PROCESSED":  StatusProcessed,
+}
+
+func (o *Order) SetStatusFromStr(status string) {
+	if intStatus, exists := stringToStatus[status]; exists {
+		o.Status = intStatus
+	}
 }
 
 func (status OrderStatus) String() string {

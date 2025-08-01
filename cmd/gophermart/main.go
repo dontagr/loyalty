@@ -19,5 +19,6 @@ func CreateApp() fx.Option {
 		bootstrap.Store,
 		bootstrap.Route,
 		bootstrap.Service,
+		bootstrap.Worker,
 	)
 }

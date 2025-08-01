@@ -5,6 +5,7 @@ import (
 
 	"github.com/dontagr/loyalty/internal/service/jwt"
 	"github.com/dontagr/loyalty/internal/service/order"
+	"github.com/dontagr/loyalty/internal/service/transport"
 	"github.com/dontagr/loyalty/internal/service/user"
 )
 
@@ -13,5 +14,6 @@ var Service = fx.Options(
 		user.NewUserService,
 		jwt.NewJWTService,
 		order.NewOrderService,
+		transport.NewHTTPManager,
 	),
 )
