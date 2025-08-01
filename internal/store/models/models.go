@@ -10,13 +10,13 @@ type (
 		ID           int    `json:"id"`
 		Login        string `json:"login"`
 		PasswordHash string `json:"password"`
-		Balance      int64
+		Balance      float64
 	}
 	Order struct {
 		ID             string      `json:"number"`
 		UserID         int         `json:"-"`
 		Status         OrderStatus `json:"status"`
-		Accrual        *int        `json:"accrual,omitempty"`
+		Accrual        *float64    `json:"accrual,omitempty"`
 		CreateDateTime time.Time   `json:"uploaded_at"`
 	}
 	OrderStatus int
