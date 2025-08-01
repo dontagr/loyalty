@@ -119,6 +119,8 @@ func (pg *PG) UpdateOrder(order *models.Order) error {
 		if err != nil {
 			return fmt.Errorf("ошибка при обновлении заказа: %w", err)
 		}
+
+		return nil
 	}
 
 	pg.LockUser()
@@ -145,11 +147,13 @@ func (pg *PG) UpdateOrder(order *models.Order) error {
 			txErr = err
 			return fmt.Errorf("ошибка при обновлении заказа: %w", err)
 		}
-		_, err = pg.dbpool.Exec(context.Background(), updateUserBalanceSQL, order.Accrual, oldOrder.UserID)
+		_, err = pg.dbpool.Exec(context.Background(), increaseUserBalanceSQL, order.Accrual, oldOrder.UserID)
 		if err != nil {
 			txErr = err
 			return fmt.Errorf("ошибка при обновлении пользователя: %w", err)
 		}
+
+		return nil
 	}
 
 	return fmt.Errorf("update order has failed order %v", order)

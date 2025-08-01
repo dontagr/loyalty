@@ -63,7 +63,11 @@ func NewHandler(
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
 			validate := validator.New()
-			err := validate.RegisterValidation("algLuna", AlgLunaValidator)
+			err := validate.RegisterValidation("algLuna", algLunaValidator)
+			if err != nil {
+				return err
+			}
+			err = validate.RegisterValidation("floatGtZero", floatGtZero)
 			if err != nil {
 				return err
 			}
@@ -96,22 +100,29 @@ func (cv *CustomValidator) Validate(i any) error {
 	return nil
 }
 
-func AlgLunaValidator(fl validator.FieldLevel) bool {
+func algLunaValidator(fl validator.FieldLevel) bool {
 	switch v := fl.Field(); v.Kind() {
 	case reflect.String:
 		number := v.String()
 
-		return AlgLuna(number)
+		return algLuna(number)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		number := strconv.FormatInt(v.Int(), 10)
 
-		return AlgLuna(number)
+		return algLuna(number)
 	default:
 		return false
 	}
 }
 
-func AlgLuna(number string) bool {
+func floatGtZero(fl validator.FieldLevel) bool {
+	if fl.Field().Kind() == reflect.Float64 {
+		return fl.Field().Float() > 0
+	}
+	return false
+}
+
+func algLuna(number string) bool {
 	var sum int
 	nDigits := len(number)
 	isSecond := false

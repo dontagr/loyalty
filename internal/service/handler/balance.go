@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -53,28 +54,49 @@ func (h *Handler) postBalanceWithdraw(c echo.Context) error {
 
 		return echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
 	}
-	//
-	//jwtUser := GetUserFromJWT(c)
-	//user, err := h.uService.GetUser(jwtUser.Login)
-	//if err != nil {
-	//	return err
-	//}
+	if err := c.Validate(requestWithdraw); err != nil {
+		h.log.Errorf("validation failed: %v", err)
+		if strings.Contains(err.Error(), "algLuna") {
+			return echo.NewHTTPError(http.StatusUnprocessableEntity, "Неверный номер заказа")
+		}
 
-	h.log.Infof("Withdraw %v", requestWithdraw)
-	// 200 => Запрос на снятие успешно обработан
-	// 401 => Пользователь не авторизован
-	// 402 => На счету недостаточно средств
-	// 422 => Неверный номер заказа
-	// 500 => Внутренняя ошибка сервера
+		return echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
+	}
 
-	return c.String(http.StatusNotImplemented, "Temporary handler stub.")
+	jwtUser := GetUserFromJWT(c)
+	h.uService.Lock()
+	defer h.uService.Unlock()
+	user, err := h.uService.GetUser(jwtUser.Login)
+	if err != nil {
+		h.log.Errorf("get user failed: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
+	}
+
+	intErr := h.wService.SaveWithdraw(requestWithdraw, user)
+	if intErr != nil {
+		if intErr.Err != nil {
+			h.log.Infof(intErr.Error())
+		}
+
+		return echo.NewHTTPError(intErr.Code, intErr.Message)
+	}
+
+	return c.JSON(http.StatusOK, "Запрос на снятие успешно обработан")
 }
 
 func (h *Handler) getWithdraw(c echo.Context) error {
-	// 500 => Внутренняя ошибка сервера
-	// 200 => Успешная обработка запроса
-	// 204 => Нет ни одного списания
-	// 401 => Пользователь не авторизован
+	list, intErr := h.wService.GetListByUser(GetUserFromJWT(c))
+	if intErr != nil {
+		if intErr.Err != nil {
+			h.log.Infof(intErr.Error())
+		}
 
-	return c.String(http.StatusNotImplemented, "Temporary handler stub.")
+		return echo.NewHTTPError(intErr.Code, intErr.Message)
+	}
+
+	if len(list) == 0 {
+		return c.NoContent(http.StatusNoContent) // Нет данных для ответа
+	}
+
+	return c.JSON(http.StatusOK, list)
 }

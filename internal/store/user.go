@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	searchUserSQL        = `SELECT id, login, password, balance FROM public.user WHERE login=$1`
-	insertUserSQL        = `INSERT INTO public.user (login, password) VALUES ($1, $2);`
-	updateUserBalanceSQL = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
+	searchUserSQL          = `SELECT id, login, password, balance FROM public.user WHERE login=$1`
+	insertUserSQL          = `INSERT INTO public.user (login, password) VALUES ($1, $2);`
+	increaseUserBalanceSQL = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
+	decreaseUserBalanceSQL = `UPDATE public.user SET balance=balance-$1 WHERE ID=$2`
 )
 
 func (pg *PG) LockUser() {

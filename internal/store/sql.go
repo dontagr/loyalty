@@ -43,11 +43,12 @@ CREATE TABLE IF NOT EXISTS public."withdrawal" (
 )
 
 type PG struct {
-	userMX  sync.RWMutex
-	orderMX sync.RWMutex
-	dbpool  *pgretry.PgxRetry
-	name    string
-	log     *zap.SugaredLogger
+	userMX       sync.RWMutex
+	orderMX      sync.RWMutex
+	withdrawalMX sync.RWMutex
+	dbpool       *pgretry.PgxRetry
+	name         string
+	log          *zap.SugaredLogger
 }
 
 func RegisterStorePG(log *zap.SugaredLogger, dbpool *pgretry.PgxRetry, lc fx.Lifecycle) *PG {
