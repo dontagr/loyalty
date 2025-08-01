@@ -9,7 +9,7 @@ type (
 		ID string `validate:"required,number,algLuna"`
 	}
 	RequestWithdraw struct {
-		Order string `json:"order" validate:"required,alphanum|algLuna"`
-		Sum   int    `json:"sum" validate:"required"`
+		Order string  `json:"order" validate:"required,alphanum|algLuna"`
+		Sum   float64 `json:"sum" validate:"required"`
 	}
 )
