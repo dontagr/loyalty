@@ -6,7 +6,7 @@
     "Key": "test"
   },
   "Service": {
-    "WorkerLimit": 5,
-    "UpdaterInterval": 5
+    "WorkerLimit": 1,
+    "UpdaterInterval": 10
   }
 }
