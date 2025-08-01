@@ -33,6 +33,8 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("creating request: %v", err))
 	}
 
+	h.log.Infof("url for sending %s", fmt.Sprintf(h.urlPattern, h.cfg.CalculateSystem.URI, orderID))
+
 	var resp *http.Response
 	var netErr *net.OpError
 	var errSend error
