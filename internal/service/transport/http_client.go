@@ -57,11 +57,12 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 			}
 			break
 		}
-		err := resp.Body.Close()
-		if err != nil {
-			h.log.Errorf("worker %d failed close body %v", w, err)
+		if resp != nil && resp.Body != nil {
+			err := resp.Body.Close()
+			if err != nil {
+				h.log.Errorf("worker %d failed close body %v", w, err)
+			}
 		}
-
 		if errors.As(errSend, &netErr) {
 			h.log.Warnf("worker %d connection error we try №%d", w, i+1)
 			time.Sleep(5 * time.Second)
