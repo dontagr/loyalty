@@ -44,18 +44,18 @@ func NewUpdater(cfg *config.Config, pg *store.PG, transport *transport.HTTPManag
 	return u
 }
 
-func (u *Updater) Handle() {
-	jobs := make(chan *models.Order, u.workers)
-	for w := 1; w <= u.workers; w++ {
-		go u.worker(w, jobs)
+func (upd *Updater) Handle() {
+	jobs := make(chan *models.Order, upd.workers)
+	for w := 1; w <= upd.workers; w++ {
+		go upd.worker(w, jobs)
 	}
 
 	for {
-		time.Sleep(time.Duration(u.interval) * time.Second)
+		time.Sleep(time.Duration(upd.interval) * time.Second)
 
-		processing, err := u.pg.GetListForProcessing()
+		processing, err := upd.pg.GetListForProcessing()
 		if err != nil {
-			u.log.Errorf("failed to get order list: %v", err)
+			upd.log.Errorf("failed to get order list: %v", err)
 			continue
 		}
 
@@ -65,12 +65,12 @@ func (u *Updater) Handle() {
 	}
 }
 
-func (s *Updater) worker(w int, jobs chan *models.Order) {
-	s.log.Infof("worker %d runing", w)
+func (upd *Updater) worker(w int, jobs chan *models.Order) {
+	upd.log.Infof("worker %d runing", w)
 	for row := range jobs {
-		request, err := s.transport.NewRequest(row.ID, w)
+		request, err := upd.transport.NewRequest(row.ID, w)
 		if err != nil {
-			s.log.Errorf("worker %d request error code:%d message:%s : %v", w, err.Code, err.Message, err.Err)
+			upd.log.Errorf("worker %d request error code:%d message:%s : %v", w, err.Code, err.Message, err.Err)
 
 			if err.Code == http.StatusTooManyRequests {
 				time.Sleep(time.Duration(60) * time.Second)
@@ -85,6 +85,9 @@ func (s *Updater) worker(w int, jobs chan *models.Order) {
 			continue
 		}
 
-		s.pg.UpdateOrder(order)
+		er := upd.pg.UpdateOrder(order)
+		if er != nil {
+			upd.log.Errorf("worker %d update failed: %v", w, er)
+		}
 	}
 }
