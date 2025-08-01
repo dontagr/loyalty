@@ -30,6 +30,7 @@ func (pg *PG) GetUser(login string) (*models.User, error) {
 		&user.ID,
 		&user.Login,
 		&user.PasswordHash,
+		&user.Balance,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return &models.User{}, nil
