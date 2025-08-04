@@ -22,8 +22,8 @@ const (
 	listOrderSQL                   = `SELECT id, user_id, status, accrual, create_dt  FROM public.order WHERE user_id = $1 ORDER BY create_dt DESC`
 	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN (0, 1) AND block != true`
 	increaseUserBalanceSQL         = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
-	selectOrderBlockSql            = `SELECT block FROM public.order WHERE $1 FOR UPDATE`
-	updateOrderBlockSql            = `UPDATE public.order SET block=$1 WHERE $2`
+	selectOrderBlockSQL            = `SELECT block FROM public.order WHERE $1 FOR UPDATE`
+	updateOrderBlockSQL            = `UPDATE public.order SET block=$1 WHERE $2`
 	createOrderTable               = `
 CREATE TABLE IF NOT EXISTS public."order" (
 	id bigint NOT NULL,
@@ -221,17 +221,13 @@ func (o *Order) BlockOrder(orderID string) bool {
 	}(&txErr)
 
 	var block bool
-	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSql, orderID).Scan(&block)
+	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
 	if err != nil || block {
 		return false
 	}
 
-	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSql, "true", orderID)
-	if err != nil {
-		return false
-	}
-
-	return true
+	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSQL, "true", orderID)
+	return err == nil
 }
 
 func (o *Order) UnblockOrder(orderID string) bool {
@@ -252,15 +248,11 @@ func (o *Order) UnblockOrder(orderID string) bool {
 	}(&txErr)
 
 	var block bool
-	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSql, orderID).Scan(&block)
+	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
 	if err != nil || !block {
 		return false
 	}
 
-	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSql, "false", orderID)
-	if err != nil {
-		return false
-	}
-
-	return true
+	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSQL, "false", orderID)
+	return err == nil
 }
