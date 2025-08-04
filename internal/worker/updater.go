@@ -74,6 +74,7 @@ func (upd *Updater) worker(w int, jobs chan *models.Order) {
 		if !upd.store.BlockOrder(row.ID) {
 			continue
 		}
+		defer upd.store.UnblockOrder(row.ID)
 
 		request, err := upd.transport.NewRequest(row.ID, w)
 		if err != nil {
@@ -96,6 +97,5 @@ func (upd *Updater) worker(w int, jobs chan *models.Order) {
 		if er != nil {
 			upd.log.Errorf("worker %d update failed: %v", w, er)
 		}
-		upd.store.UnblockOrder(row.ID)
 	}
 }
