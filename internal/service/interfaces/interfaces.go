@@ -17,6 +17,8 @@ type (
 		GetListByUserID(userID int) ([]*models.Order, error)
 		GetListForProcessing() ([]*models.Order, error)
 		UpdateOrder(order *models.Order) error
+		BlockOrder(orderID string) bool
+		UnblockOrder(orderID string) bool
 	}
 	WithdrawalStore interface {
 		Lock()

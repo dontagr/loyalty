@@ -71,6 +71,10 @@ func (upd *Updater) Handle() {
 func (upd *Updater) worker(w int, jobs chan *models.Order) {
 	upd.log.Infof("worker %d runing", w)
 	for row := range jobs {
+		if !upd.store.BlockOrder(row.ID) {
+			continue
+		}
+
 		request, err := upd.transport.NewRequest(row.ID, w)
 		if err != nil {
 			upd.log.Errorf("worker %d request orderID:%s error code:%d message:%s : %v", w, row.ID, err.Code, err.Message, err.Err)
@@ -92,5 +96,6 @@ func (upd *Updater) worker(w int, jobs chan *models.Order) {
 		if er != nil {
 			upd.log.Errorf("worker %d update failed: %v", w, er)
 		}
+		upd.store.UnblockOrder(row.ID)
 	}
 }

@@ -20,8 +20,10 @@ const (
 	updateOrderStatusSQL           = `UPDATE public.order SET status=$1 WHERE id=$2;`
 	updateOrderStatusAndAccrualSQL = `UPDATE public.order SET status=$1, accrual=$2 WHERE id=$3;`
 	listOrderSQL                   = `SELECT id, user_id, status, accrual, create_dt  FROM public.order WHERE user_id = $1 ORDER BY create_dt DESC`
-	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN (0, 1)`
+	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN (0, 1) AND block != true`
 	increaseUserBalanceSQL         = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
+	selectOrderBlockSql            = `SELECT block FROM public.order WHERE $1 FOR UPDATE`
+	updateOrderBlockSql            = `UPDATE public.order SET block=$1 WHERE $2`
 	createOrderTable               = `
 CREATE TABLE IF NOT EXISTS public."order" (
 	id bigint NOT NULL,
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS public."order" (
 	accrual double precision DEFAULT NUll,
 	status int2 DEFAULT 0 NOT NULL,
 	create_dt timestamptz DEFAULT NOW() NOT NULL,
+    block bool DEFAULT false NOT NULL,
 	CONSTRAINT order_pk PRIMARY KEY (id),
 	CONSTRAINT order_id_idx UNIQUE (user_id,id)
 );
@@ -198,4 +201,66 @@ func (o *Order) UpdateOrder(order *models.Order) error {
 	}
 
 	return fmt.Errorf("update order has failed order %v", order)
+}
+
+func (o *Order) BlockOrder(orderID string) bool {
+	tx, txErr := o.dbpool.Begin(context.Background())
+	if txErr != nil {
+		o.log.Errorf("ошибка начала транзакции: %w", txErr)
+	}
+	defer func(txErr *error) {
+		if *txErr != nil {
+			if rollbackErr := tx.Rollback(context.Background()); rollbackErr != nil {
+				o.log.Errorf("ошибка отката транзакции: %v", rollbackErr)
+			}
+		} else {
+			if commitErr := tx.Commit(context.Background()); commitErr != nil {
+				o.log.Errorf("ошибка при коммите транзакции: %v", commitErr)
+			}
+		}
+	}(&txErr)
+
+	var block bool
+	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSql, orderID).Scan(&block)
+	if err != nil || block {
+		return false
+	}
+
+	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSql, "true", orderID)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func (o *Order) UnblockOrder(orderID string) bool {
+	tx, txErr := o.dbpool.Begin(context.Background())
+	if txErr != nil {
+		o.log.Errorf("ошибка начала транзакции: %w", txErr)
+	}
+	defer func(txErr *error) {
+		if *txErr != nil {
+			if rollbackErr := tx.Rollback(context.Background()); rollbackErr != nil {
+				o.log.Errorf("ошибка отката транзакции: %v", rollbackErr)
+			}
+		} else {
+			if commitErr := tx.Commit(context.Background()); commitErr != nil {
+				o.log.Errorf("ошибка при коммите транзакции: %v", commitErr)
+			}
+		}
+	}(&txErr)
+
+	var block bool
+	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSql, orderID).Scan(&block)
+	if err != nil || !block {
+		return false
+	}
+
+	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSql, "false", orderID)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
