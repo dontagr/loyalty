@@ -1,7 +1,7 @@
 package transport
 
 import (
-	error2 "github.com/dontagr/loyalty/internal/service/error"
+	error2 "github.com/dontagr/loyalty/internal/service/customerror"
 	"github.com/dontagr/loyalty/internal/service/transport/models"
 )
 

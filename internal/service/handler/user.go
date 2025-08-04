@@ -8,7 +8,7 @@ import (
 	"github.com/dontagr/loyalty/internal/service/models"
 )
 
-func (h *Handler) signUp(c echo.Context) error {
+func (h *Handler) SignUp(c echo.Context) error {
 	requestUser, echoError := h.getRequestUser(c)
 	if echoError != nil {
 		return echoError
@@ -38,7 +38,7 @@ func (h *Handler) signUp(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Пользователь успешно зарегистрирован и аутентифицирован")
 }
 
-func (h *Handler) signIn(c echo.Context) error {
+func (h *Handler) SignIn(c echo.Context) error {
 	requestUser, echoError := h.getRequestUser(c)
 	if echoError != nil {
 		return echoError

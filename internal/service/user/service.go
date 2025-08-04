@@ -6,32 +6,31 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	intError "github.com/dontagr/loyalty/internal/service/error"
+	"github.com/dontagr/loyalty/internal/service/customerror"
+	"github.com/dontagr/loyalty/internal/service/interfaces"
 	"github.com/dontagr/loyalty/internal/service/jwt"
-	"github.com/dontagr/loyalty/internal/store"
 	"github.com/dontagr/loyalty/internal/store/models"
 )
 
 type UserService struct {
-	// TODO use interface
-	pg         *store.PG
+	store      interfaces.UserStore
 	jwtService *jwt.JWTService
 }
 
-func NewUserService(pg *store.PG, jwtService *jwt.JWTService) *UserService {
-	return &UserService{pg: pg, jwtService: jwtService}
+func NewUserService(store interfaces.UserStore, jwtService *jwt.JWTService) *UserService {
+	return &UserService{store: store, jwtService: jwtService}
 }
 
 func (u *UserService) Lock() {
-	u.pg.LockUser()
+	u.store.Lock()
 }
 
 func (u *UserService) Unlock() {
-	u.pg.UnlockUser()
+	u.store.Unlock()
 }
 
 func (u *UserService) HasLogin(login string) (bool, error) {
-	user, err := u.pg.GetUser(login)
+	user, err := u.store.GetUser(login)
 	if err != nil {
 		return false, err
 	}
@@ -40,7 +39,7 @@ func (u *UserService) HasLogin(login string) (bool, error) {
 }
 
 func (u *UserService) GetUser(login string) (*models.User, error) {
-	return u.pg.GetUser(login)
+	return u.store.GetUser(login)
 }
 
 func (u *UserService) SignUp(login string, password string) (string, error) {
@@ -49,12 +48,12 @@ func (u *UserService) SignUp(login string, password string) (string, error) {
 		return "", err
 	}
 
-	err = u.pg.SaveUser(login, passHash)
+	err = u.store.SaveUser(login, passHash)
 	if err != nil {
 		return "", err
 	}
 
-	user, err := u.pg.GetUser(login)
+	user, err := u.store.GetUser(login)
 	if err != nil {
 		return "", err
 	}
@@ -67,15 +66,15 @@ func (u *UserService) SignUp(login string, password string) (string, error) {
 	return jwtHash, nil
 }
 
-func (u *UserService) SignIn(password string, user *models.User) (string, *intError.CustomError) {
-	valid, intErrors := u.CompareHashAndPassword(user, password)
+func (u *UserService) SignIn(password string, user *models.User) (string, *customerror.CustomError) {
+	valid, cError := u.CompareHashAndPassword(user, password)
 	if !valid {
-		return "", intErrors
+		return "", cError
 	}
 
 	jwtHash, err := u.jwtService.GetJWT(user.ID, user.Login)
 	if err != nil {
-		return "", intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed create jwt: %v", err))
+		return "", customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed create jwt: %v", err))
 	}
 
 	return jwtHash, nil
@@ -90,9 +89,9 @@ func (u *UserService) generatePassHash(password string) (string, error) {
 	return string(passHash), nil
 }
 
-func (u *UserService) CompareHashAndPassword(user *models.User, password string) (bool, *intError.CustomError) {
+func (u *UserService) CompareHashAndPassword(user *models.User, password string) (bool, *customerror.CustomError) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return false, intError.NewCustomError(http.StatusUnauthorized, "Неверная пара логин/пароль", nil)
+		return false, customerror.NewCustomError(http.StatusUnauthorized, "Неверная пара логин/пароль", nil)
 	}
 
 	return true, nil

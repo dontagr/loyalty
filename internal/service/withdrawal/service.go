@@ -4,53 +4,52 @@ import (
 	"fmt"
 	"net/http"
 
-	intError "github.com/dontagr/loyalty/internal/service/error"
+	"github.com/dontagr/loyalty/internal/service/customerror"
+	"github.com/dontagr/loyalty/internal/service/interfaces"
 	"github.com/dontagr/loyalty/internal/service/models"
-	"github.com/dontagr/loyalty/internal/store"
-	models2 "github.com/dontagr/loyalty/internal/store/models"
+	storeModel "github.com/dontagr/loyalty/internal/store/models"
 )
 
 type WithdrawalService struct {
-	// TODO use interface
-	pg *store.PG
+	store interfaces.WithdrawalStore
 }
 
-func NewWithdrawalService(pg *store.PG) *WithdrawalService {
-	return &WithdrawalService{pg: pg}
+func NewWithdrawalService(store interfaces.WithdrawalStore) *WithdrawalService {
+	return &WithdrawalService{store: store}
 }
 
 func (w *WithdrawalService) GetTotalWithdrawal(userID int) (float64, error) {
-	return w.pg.GetTotalWithdrawal(userID)
+	return w.store.GetTotalWithdrawal(userID)
 }
 
-func (w *WithdrawalService) SaveWithdraw(reqW *models.RequestWithdraw, user *models2.User) *intError.CustomError {
+func (w *WithdrawalService) SaveWithdraw(reqW *models.RequestWithdraw, user *storeModel.User) *customerror.CustomError {
 	if user.Balance-reqW.Sum < 0 {
-		return intError.NewCustomError(http.StatusPaymentRequired, "На счету недостаточно средств", nil)
+		return customerror.NewCustomError(http.StatusPaymentRequired, "На счету недостаточно средств", nil)
 	}
 
-	w.pg.LockWithdrawal()
-	defer w.pg.UnlockWithdrawal()
+	w.store.Lock()
+	defer w.store.Unlock()
 
-	withdraw, err := w.pg.GetWithdraw(reqW.Order)
+	withdraw, err := w.store.GetWithdraw(reqW.Order)
 	if err != nil {
-		return intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", err)
+		return customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", err)
 	}
 	if withdraw.ID != "" {
-		return intError.NewCustomError(http.StatusUnprocessableEntity, "Неверный номер заказа", nil)
+		return customerror.NewCustomError(http.StatusUnprocessableEntity, "Неверный номер заказа", nil)
 	}
 
-	err = w.pg.SaveWithdraw(models2.Withdrawal{ID: reqW.Order, Withdrawal: reqW.Sum, UserID: user.ID})
+	err = w.store.SaveWithdraw(storeModel.Withdrawal{ID: reqW.Order, Withdrawal: reqW.Sum, UserID: user.ID})
 	if err != nil {
-		return intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", err)
+		return customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", err)
 	}
 
 	return nil
 }
 
-func (w *WithdrawalService) GetListByUser(user *models2.User) ([]*models2.Withdrawal, *intError.CustomError) {
-	list, err := w.pg.GetWithdrawalListByUserID(user.ID)
+func (w *WithdrawalService) GetListByUser(user *storeModel.User) ([]*storeModel.Withdrawal, *customerror.CustomError) {
+	list, err := w.store.GetWithdrawalListByUserID(user.ID)
 	if err != nil {
-		return nil, intError.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get list order: %v", err))
+		return nil, customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed get list order: %v", err))
 	}
 
 	return list, nil

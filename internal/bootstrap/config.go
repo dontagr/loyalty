@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"fmt"
+
 	"go.uber.org/fx"
 
 	configInternal "github.com/dontagr/loyalty/internal/config"
@@ -25,18 +27,18 @@ func newConfig() (*configInternal.Config, error) {
 	if !cnf.IsTestFlag() {
 		err := flagEnricher.Process(configInt)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to process flags: %w", err)
 		}
 	}
 
 	err := cnf.ReadFromEnv()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read from env: %w", err)
 	}
 
 	err = cnf.Validate()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
 	return configInt, nil

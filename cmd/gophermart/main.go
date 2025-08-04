@@ -7,11 +7,7 @@ import (
 )
 
 func main() {
-	fx.New(CreateApp()).Run()
-}
-
-func CreateApp() fx.Option {
-	return fx.Options(
+	fx.New(
 		bootstrap.Server,
 		bootstrap.Config,
 		bootstrap.Logger,
@@ -20,5 +16,5 @@ func CreateApp() fx.Option {
 		bootstrap.Route,
 		bootstrap.Service,
 		bootstrap.Worker,
-	)
+	).Run()
 }

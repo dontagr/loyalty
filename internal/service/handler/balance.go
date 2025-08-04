@@ -8,14 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/dontagr/loyalty/internal/service/models"
-	models2 "github.com/dontagr/loyalty/internal/store/models"
+	storeModel "github.com/dontagr/loyalty/internal/store/models"
 )
 
-func (h *Handler) getBalance(c echo.Context) error {
-	jwtUser := GetUserFromJWT(c)
+func (h *Handler) GetBalance(c echo.Context) error {
+	jwtUser := h.jwt.GetUser(c)
 	var waitGroup sync.WaitGroup
-
-	var user *models2.User
+	var user *storeModel.User
 	var userErr error
 	waitGroup.Add(1)
 	go func() {
@@ -47,7 +46,7 @@ func (h *Handler) getBalance(c echo.Context) error {
 	})
 }
 
-func (h *Handler) postBalanceWithdraw(c echo.Context) error {
+func (h *Handler) PostBalanceWithdraw(c echo.Context) error {
 	requestWithdraw := &models.RequestWithdraw{}
 	if err := c.Bind(requestWithdraw); err != nil {
 		h.log.Errorf("request failed: %v", err)
@@ -63,7 +62,7 @@ func (h *Handler) postBalanceWithdraw(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Неверный формат запроса")
 	}
 
-	jwtUser := GetUserFromJWT(c)
+	jwtUser := h.jwt.GetUser(c)
 	h.uService.Lock()
 	defer h.uService.Unlock()
 	user, err := h.uService.GetUser(jwtUser.Login)
@@ -84,8 +83,8 @@ func (h *Handler) postBalanceWithdraw(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Запрос на снятие успешно обработан")
 }
 
-func (h *Handler) getWithdraw(c echo.Context) error {
-	list, intErr := h.wService.GetListByUser(GetUserFromJWT(c))
+func (h *Handler) GetWithdraw(c echo.Context) error {
+	list, intErr := h.wService.GetListByUser(h.jwt.GetUser(c))
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())

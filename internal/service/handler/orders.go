@@ -8,10 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/dontagr/loyalty/internal/service/models"
-	models2 "github.com/dontagr/loyalty/internal/store/models"
+	storeModel "github.com/dontagr/loyalty/internal/store/models"
 )
 
-func (h *Handler) createOrder(c echo.Context) error {
+func (h *Handler) CreateOrder(c echo.Context) error {
 	requestOrder, echoErr := h.getOrderBody(c)
 	if echoErr != nil {
 		return echoErr
@@ -30,7 +30,7 @@ func (h *Handler) createOrder(c echo.Context) error {
 
 	h.oService.Lock()
 	defer h.oService.Unlock()
-	success, intErr := h.oService.CreateOrder(order.ID, GetUserFromJWT(c))
+	success, intErr := h.oService.CreateOrder(order.ID, h.jwt.GetUser(c))
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())
@@ -47,8 +47,8 @@ func (h *Handler) createOrder(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, "Новый номер заказа принят в обработку")
 }
 
-func (h *Handler) getOrder(c echo.Context) error {
-	list, intErr := h.oService.GetListByUser(GetUserFromJWT(c))
+func (h *Handler) GetOrder(c echo.Context) error {
+	list, intErr := h.oService.GetListByUser(h.jwt.GetUser(c))
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())
@@ -76,6 +76,6 @@ func (h *Handler) getOrderBody(c echo.Context) (*models.RequestOrder, *echo.HTTP
 	return requestOrder, nil
 }
 
-func (h *Handler) createOrderStoreModel(order *models.RequestOrder) (*models2.Order, *echo.HTTPError) {
-	return &models2.Order{ID: order.ID}, nil
+func (h *Handler) createOrderStoreModel(order *models.RequestOrder) (*storeModel.Order, *echo.HTTPError) {
+	return &storeModel.Order{ID: order.ID}, nil
 }

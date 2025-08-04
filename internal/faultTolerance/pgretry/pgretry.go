@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync/atomic"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
@@ -16,9 +15,11 @@ import (
 )
 
 const (
-	DurationFirstIteration  = 1
-	DurationSecondIteration = 3
-	DurationThirdIteration  = 5
+	maxRetries          = 3
+	retryInterval       = 5
+	maxBackoffInterval  = 10 * time.Second
+	randomizationFactor = 0
+	multiplier          = 1
 )
 
 type PgxRetry struct {
@@ -33,17 +34,14 @@ func NewPgxRetry(conn *pgxpool.Pool, log *zap.SugaredLogger) *PgxRetry {
 	}
 
 	return &PgxRetry{
-		dbpool:   conn,
-		duration: []int{DurationFirstIteration, DurationSecondIteration, DurationThirdIteration},
-		log:      log,
+		dbpool: conn,
+		log:    log,
 	}
 }
 
 func (pgr *PgxRetry) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
 	start := time.Now()
-	iter := atomic.Int32{}
 	operation := func() (pgconn.CommandTag, error) {
-		defer iter.Add(1)
 		tag, err := pgr.dbpool.Exec(ctx, sql, arguments...)
 
 		if err != nil {
@@ -51,26 +49,19 @@ func (pgr *PgxRetry) Exec(ctx context.Context, sql string, arguments ...interfac
 			duration := end.Sub(start)
 			var connectErr *pgconn.ConnectError
 			if errors.As(err, &connectErr) {
-				log.Debugf("ошибка подключения к базе; Пробуем еще раз, прошло времени: %v сек, итерация %v", duration.Seconds(), iter.Load()+1)
+				log.Debugf("ошибка подключения к базе; Пробуем еще раз, прошло времени: %v сек", duration.Seconds())
 
-				return tag, backoff.RetryAfter(pgr.duration[iter.Load()])
+				return tag, backoff.RetryAfter(retryInterval)
 			}
 
-			log.Debugf("ошибка фатальна; Прошло времени: %v сек, итерация %v", duration.Seconds(), iter.Load()+1)
+			log.Debugf("ошибка фатальна; Прошло времени: %v сек", duration.Seconds())
 			return tag, backoff.Permanent(err)
 		}
 
 		return tag, nil
 	}
 
-	opt := backoff.ExponentialBackOff{
-		InitialInterval:     time.Duration(pgr.duration[iter.Load()]) * time.Second,
-		RandomizationFactor: 0,
-		Multiplier:          1,
-		MaxInterval:         time.Duration(10) * time.Second,
-	}
-
-	return backoff.Retry(ctx, operation, backoff.WithBackOff(&opt), backoff.WithMaxTries(3))
+	return backoff.Retry(ctx, operation, backoff.WithBackOff(pgr.getBackOffOptions()), backoff.WithMaxTries(maxRetries))
 }
 
 func (pgr *PgxRetry) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
@@ -104,4 +95,13 @@ func (pgr *PgxRetry) Ping(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (pgr *PgxRetry) getBackOffOptions() *backoff.ExponentialBackOff {
+	return &backoff.ExponentialBackOff{
+		InitialInterval:     retryInterval * time.Second,
+		RandomizationFactor: randomizationFactor,
+		Multiplier:          multiplier,
+		MaxInterval:         maxBackoffInterval,
+	}
 }

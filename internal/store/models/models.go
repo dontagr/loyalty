@@ -67,7 +67,3 @@ func (status OrderStatus) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(str)
 }
-
-func (u *User) Unpack() (string, string) {
-	return u.Login, u.PasswordHash
-}

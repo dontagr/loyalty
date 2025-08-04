@@ -9,8 +9,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/dontagr/loyalty/internal/config"
+	"github.com/dontagr/loyalty/internal/service/interfaces"
 	"github.com/dontagr/loyalty/internal/service/transport"
-	"github.com/dontagr/loyalty/internal/store"
 	"github.com/dontagr/loyalty/internal/store/models"
 )
 
@@ -19,17 +19,17 @@ type Updater struct {
 	log       *zap.SugaredLogger
 	workers   int
 	interval  int
-	pg        *store.PG
+	store     interfaces.OrderStore
 	transport transport.Transport
 }
 
-func NewUpdater(cfg *config.Config, pg *store.PG, transport *transport.HTTPManager, log *zap.SugaredLogger, lc fx.Lifecycle) *Updater {
+func NewUpdater(cfg *config.Config, store interfaces.OrderStore, transport *transport.HTTPManager, log *zap.SugaredLogger, lc fx.Lifecycle) *Updater {
 	u := &Updater{
 		cfg:       cfg,
 		log:       log,
 		workers:   cfg.Service.WorkerLimit,
 		interval:  cfg.Service.UpdaterInterval,
-		pg:        pg,
+		store:     store,
 		transport: transport,
 	}
 
@@ -54,7 +54,7 @@ func (upd *Updater) Handle() {
 		time.Sleep(time.Duration(upd.interval) * time.Second)
 		upd.log.Infof("start planing")
 
-		processing, err := upd.pg.GetListForProcessing()
+		processing, err := upd.store.GetListForProcessing()
 		if err != nil {
 			upd.log.Errorf("failed to get order list: %v", err)
 			continue
@@ -88,7 +88,7 @@ func (upd *Updater) worker(w int, jobs chan *models.Order) {
 			continue
 		}
 
-		er := upd.pg.UpdateOrder(order)
+		er := upd.store.UpdateOrder(order)
 		if er != nil {
 			upd.log.Errorf("worker %d update failed: %v", w, er)
 		}

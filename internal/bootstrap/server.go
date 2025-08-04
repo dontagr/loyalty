@@ -4,9 +4,15 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/dontagr/loyalty/internal/httpserver"
+	"github.com/dontagr/loyalty/internal/httpserver/routing"
 )
 
 var Server = fx.Options(
-	fx.Provide(httpserver.NewServer),
-	fx.Invoke(func(*httpserver.HTTPServer) {}),
+	fx.Provide(
+		httpserver.NewServer,
+	),
+	fx.Invoke(
+		func(*httpserver.HTTPServer) {},
+		routing.InitRouting,
+	),
 )
