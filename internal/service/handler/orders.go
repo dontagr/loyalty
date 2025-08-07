@@ -59,6 +59,10 @@ func (h *Handler) GetOrder(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent) // Нет данных для ответа
 	}
 
+	for _, d := range list {
+		h.log.Infof("Найден заказ %s, %s, %d", d.ID, d.Status, *d.Accrual)
+	}
+
 	return c.JSON(http.StatusOK, list)
 }
 

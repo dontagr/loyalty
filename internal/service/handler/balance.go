@@ -89,5 +89,9 @@ func (h *Handler) GetWithdraw(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent) // Нет данных для ответа
 	}
 
+	for _, d := range list {
+		h.log.Infof("Найден возврат %s, %d", d.ID, d.Withdrawal)
+	}
+
 	return c.JSON(http.StatusOK, list)
 }
