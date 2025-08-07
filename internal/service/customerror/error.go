@@ -10,6 +10,14 @@ type (
 	}
 )
 
+const (
+	Internal int = iota
+	Unprocessable
+	Payment
+	Unauthorized
+	Conflict
+)
+
 func (e *CustomError) Error() string {
 	if e.Err != nil {
 		return fmt.Sprintf("Error code: %d, message: %s, original error: %s", e.Code, e.Message, e.Err.Error())

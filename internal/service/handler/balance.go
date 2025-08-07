@@ -41,7 +41,7 @@ func (h *Handler) GetBalance(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, &models.ResponceWithdraw{
-		Balance:    user.Balance,
+		Balance:    float64(user.Balance) / 100,
 		Withdrawal: withdrawal,
 	})
 }
@@ -63,21 +63,13 @@ func (h *Handler) PostBalanceWithdraw(c echo.Context) error {
 	}
 
 	jwtUser := h.jwt.GetUser(c)
-	h.uService.Lock()
-	defer h.uService.Unlock()
-	user, err := h.uService.GetUser(jwtUser.Login)
-	if err != nil {
-		h.log.Errorf("get user failed: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "Внутренняя ошибка сервера")
-	}
-
-	intErr := h.wService.SaveWithdraw(requestWithdraw, user)
+	intErr := h.wService.SaveWithdraw(requestWithdraw, h.uService, jwtUser.Login)
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())
 		}
 
-		return echo.NewHTTPError(intErr.Code, intErr.Message)
+		return echo.NewHTTPError(h.convertCustomErrorToServerCode(intErr.Code), intErr.Message)
 	}
 
 	return c.JSON(http.StatusOK, "Запрос на снятие успешно обработан")
@@ -90,7 +82,7 @@ func (h *Handler) GetWithdraw(c echo.Context) error {
 			h.log.Infof(intErr.Error())
 		}
 
-		return echo.NewHTTPError(intErr.Code, intErr.Message)
+		return echo.NewHTTPError(h.convertCustomErrorToServerCode(intErr.Code), intErr.Message)
 	}
 
 	if len(list) == 0 {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/fx"
@@ -20,26 +19,32 @@ const (
 	updateOrderStatusSQL           = `UPDATE public.order SET status=$1 WHERE id=$2;`
 	updateOrderStatusAndAccrualSQL = `UPDATE public.order SET status=$1, accrual=$2 WHERE id=$3;`
 	listOrderSQL                   = `SELECT id, user_id, status, accrual, create_dt  FROM public.order WHERE user_id = $1 ORDER BY create_dt DESC`
-	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN (0, 1) AND block != true`
+	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN ('new', 'processing') AND block != true`
 	increaseUserBalanceSQL         = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
 	selectOrderBlockSQL            = `SELECT block FROM public.order WHERE ID=$1 FOR UPDATE`
 	updateOrderBlockSQL            = `UPDATE public.order SET block=$1 WHERE ID=$2`
 	createOrderTable               = `
+DO $$
+BEGIN
+IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'statuses') THEN
+	CREATE TYPE statuses AS ENUM ('new', 'processing', 'invalid', 'processed');
+END IF;
+
 CREATE TABLE IF NOT EXISTS public."order" (
 	id bigint NOT NULL,
 	user_id bigint NOT NULL,
-	accrual double precision DEFAULT NUll,
-	status int2 DEFAULT 0 NOT NULL,
+	accrual bigint DEFAULT NUll,
+	status statuses DEFAULT 'new' NOT NULL,
 	create_dt timestamptz DEFAULT NOW() NOT NULL,
     block bool DEFAULT false NOT NULL,
 	CONSTRAINT order_pk PRIMARY KEY (id),
 	CONSTRAINT order_id_idx UNIQUE (user_id,id)
 );
+END$$;
 `
 )
 
 type Order struct {
-	mx     sync.RWMutex
 	dbpool *pgretry.PgxRetry
 	log    *zap.SugaredLogger
 }
@@ -63,14 +68,6 @@ func (o *Order) addShema(ctx context.Context) error {
 	_, err := o.dbpool.Exec(ctx, createOrderTable)
 
 	return err
-}
-
-func (o *Order) Lock() {
-	o.mx.Lock()
-}
-
-func (o *Order) Unlock() {
-	o.mx.Unlock()
 }
 
 func (o *Order) GetOrder(orderID string) (*models.Order, error) {
@@ -149,8 +146,6 @@ func (o *Order) UpdateOrder(order *models.Order) error {
 		return err
 	}
 
-	o.Lock()
-	defer o.Unlock()
 	if order.Status == models.StatusProcessing && oldOrder.Status != models.StatusInvalid && oldOrder.Status != models.StatusProcessed {
 		_, err := o.dbpool.Exec(context.Background(), updateOrderStatusSQL, order.Status, order.ID)
 		if err != nil {
@@ -220,19 +215,13 @@ func (o *Order) BlockOrder(orderID string) bool {
 		}
 	}(&txErr)
 
-	fmt.Println(orderID)
 	var block bool
 	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
 	if err != nil || block {
-		fmt.Println(block)
-		fmt.Println(err)
-		fmt.Println("======")
 		return false
 	}
 
 	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSQL, "TRUE", orderID)
-	fmt.Println(err)
-	fmt.Println("======")
 	return err == nil
 }
 

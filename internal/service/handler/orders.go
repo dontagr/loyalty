@@ -28,21 +28,19 @@ func (h *Handler) CreateOrder(c echo.Context) error {
 		return echoErr
 	}
 
-	h.oService.Lock()
-	defer h.oService.Unlock()
 	success, intErr := h.oService.CreateOrder(order.ID, h.jwt.GetUser(c))
 	if intErr != nil {
 		if intErr.Err != nil {
 			h.log.Infof(intErr.Error())
 		}
 
-		return echo.NewHTTPError(intErr.Code, intErr.Message)
+		return echo.NewHTTPError(h.convertCustomErrorToServerCode(intErr.Code), intErr.Message)
 	}
 	if !success {
 		return c.JSON(http.StatusOK, "Номер заказа уже был загружен этим пользователем")
 	}
 
-	h.log.Infof("Заказ=%s\n", order.ID)
+	h.log.Infof("Создан заказ=%s\n", order.ID)
 
 	return c.JSON(http.StatusAccepted, "Новый номер заказа принят в обработку")
 }
@@ -54,7 +52,7 @@ func (h *Handler) GetOrder(c echo.Context) error {
 			h.log.Infof(intErr.Error())
 		}
 
-		return echo.NewHTTPError(intErr.Code, intErr.Message)
+		return echo.NewHTTPError(h.convertCustomErrorToServerCode(intErr.Code), intErr.Message)
 	}
 
 	if len(list) == 0 {

@@ -14,8 +14,6 @@ func (h *Handler) SignUp(c echo.Context) error {
 		return echoError
 	}
 
-	h.uService.Lock()
-	defer h.uService.Unlock()
 	hasLogin, err := h.uService.HasLogin(requestUser.Login)
 	if err != nil {
 		h.log.Errorf("has login error: %v", err)
@@ -60,7 +58,7 @@ func (h *Handler) SignIn(c echo.Context) error {
 			h.log.Infof(intErr.Error())
 		}
 
-		return echo.NewHTTPError(intErr.Code, intErr.Message)
+		return echo.NewHTTPError(h.convertCustomErrorToServerCode(intErr.Code), intErr.Message)
 	}
 
 	c.Response().Header().Set("Authorization", jwtHash)

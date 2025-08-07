@@ -30,7 +30,7 @@ func NewHTTPManager(cfg *config.Config, log *zap.SugaredLogger) *HTTPManager {
 func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, *customerror.CustomError) {
 	req, err := http.NewRequest("GET", fmt.Sprintf(h.urlPattern, h.cfg.CalculateSystem.URI, orderID), nil)
 	if err != nil {
-		return nil, customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("creating request: %v", err))
+		return nil, customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("creating request: %v", err))
 	}
 
 	h.log.Infof("url for sending %s", fmt.Sprintf(h.urlPattern, h.cfg.CalculateSystem.URI, orderID))
@@ -55,7 +55,7 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 			orderResponse = new(models.OrderResponse)
 			err = json.NewDecoder(resp.Body).Decode(orderResponse)
 			if err != nil {
-				return nil, customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("decoding response: %v", err))
+				return nil, customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("decoding response: %v", err))
 			}
 			break
 		}
@@ -69,12 +69,12 @@ func (h *HTTPManager) NewRequest(orderID string, w int) (*models.OrderResponse, 
 			h.log.Warnf("worker %d connection error we try №%d", w, i+1)
 			time.Sleep(5 * time.Second)
 		} else {
-			return nil, customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("sending data: %v", errSend))
+			return nil, customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("sending data: %v", errSend))
 		}
 	}
 
 	if errSend != nil {
-		return nil, customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("sending data: %v", errSend))
+		return nil, customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("sending data: %v", errSend))
 	}
 
 	h.log.Infof("worker %d request success full", w)

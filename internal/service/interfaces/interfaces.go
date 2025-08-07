@@ -1,17 +1,17 @@
 package interfaces
 
-import "github.com/dontagr/loyalty/internal/store/models"
+import (
+	"github.com/jackc/pgx/v5"
+
+	"github.com/dontagr/loyalty/internal/store/models"
+)
 
 type (
 	UserStore interface {
-		Lock()
-		Unlock()
-		GetUser(login string) (*models.User, error)
+		GetUser(login string, params ...bool) (*models.User, error)
 		SaveUser(login string, passwordHash string) error
 	}
 	OrderStore interface {
-		Lock()
-		Unlock()
 		GetOrder(orderID string) (*models.Order, error)
 		SaveOrder(orderID string, userID int) error
 		GetListByUserID(userID int) ([]*models.Order, error)
@@ -21,8 +21,9 @@ type (
 		UnblockOrder(orderID string) bool
 	}
 	WithdrawalStore interface {
-		Lock()
-		Unlock()
+		BeginTX() (pgx.Tx, error)
+		RollbackTX(tx pgx.Tx)
+		CommitTX(tx pgx.Tx)
 		GetTotalWithdrawal(userID int) (float64, error)
 		GetWithdraw(orderID string) (*models.Withdrawal, error)
 		SaveWithdraw(withdrawal models.Withdrawal) error

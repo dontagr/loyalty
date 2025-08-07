@@ -91,7 +91,8 @@ func (upd *Updater) orderProcess(row *models.Order, w int) {
 		return
 	}
 
-	order := &models.Order{ID: row.ID, Accrual: &request.Accrual}
+	accrual := int(request.Accrual * 100)
+	order := &models.Order{ID: row.ID, Accrual: &accrual}
 	order.SetStatusFromStr(request.Status)
 
 	if order.Status == models.StatusNew {

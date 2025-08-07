@@ -2,7 +2,6 @@ package user
 
 import (
 	"fmt"
-	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -12,24 +11,16 @@ import (
 	"github.com/dontagr/loyalty/internal/store/models"
 )
 
-type UserService struct {
+type Service struct {
 	store      interfaces.UserStore
 	jwtService *jwt.JWTService
 }
 
-func NewUserService(store interfaces.UserStore, jwtService *jwt.JWTService) *UserService {
-	return &UserService{store: store, jwtService: jwtService}
+func NewUserService(store interfaces.UserStore, jwtService *jwt.JWTService) *Service {
+	return &Service{store: store, jwtService: jwtService}
 }
 
-func (u *UserService) Lock() {
-	u.store.Lock()
-}
-
-func (u *UserService) Unlock() {
-	u.store.Unlock()
-}
-
-func (u *UserService) HasLogin(login string) (bool, error) {
+func (u *Service) HasLogin(login string) (bool, error) {
 	user, err := u.store.GetUser(login)
 	if err != nil {
 		return false, err
@@ -38,11 +29,11 @@ func (u *UserService) HasLogin(login string) (bool, error) {
 	return user.Login == login, nil
 }
 
-func (u *UserService) GetUser(login string) (*models.User, error) {
-	return u.store.GetUser(login)
+func (u *Service) GetUser(login string, params ...bool) (*models.User, error) {
+	return u.store.GetUser(login, params...)
 }
 
-func (u *UserService) SignUp(login string, password string) (string, error) {
+func (u *Service) SignUp(login string, password string) (string, error) {
 	passHash, err := u.generatePassHash(password)
 	if err != nil {
 		return "", err
@@ -66,7 +57,7 @@ func (u *UserService) SignUp(login string, password string) (string, error) {
 	return jwtHash, nil
 }
 
-func (u *UserService) SignIn(password string, user *models.User) (string, *customerror.CustomError) {
+func (u *Service) SignIn(password string, user *models.User) (string, *customerror.CustomError) {
 	valid, cError := u.CompareHashAndPassword(user, password)
 	if !valid {
 		return "", cError
@@ -74,13 +65,13 @@ func (u *UserService) SignIn(password string, user *models.User) (string, *custo
 
 	jwtHash, err := u.jwtService.GetJWT(user.ID, user.Login)
 	if err != nil {
-		return "", customerror.NewCustomError(http.StatusInternalServerError, "Внутренняя ошибка сервера", fmt.Errorf("failed create jwt: %v", err))
+		return "", customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("failed create jwt: %v", err))
 	}
 
 	return jwtHash, nil
 }
 
-func (u *UserService) generatePassHash(password string) (string, error) {
+func (u *Service) generatePassHash(password string) (string, error) {
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate password hash: %v", err)
@@ -89,9 +80,9 @@ func (u *UserService) generatePassHash(password string) (string, error) {
 	return string(passHash), nil
 }
 
-func (u *UserService) CompareHashAndPassword(user *models.User, password string) (bool, *customerror.CustomError) {
+func (u *Service) CompareHashAndPassword(user *models.User, password string) (bool, *customerror.CustomError) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return false, customerror.NewCustomError(http.StatusUnauthorized, "Неверная пара логин/пароль", nil)
+		return false, customerror.NewCustomError(customerror.Internal, "Неверная пара логин/пароль", nil)
 	}
 
 	return true, nil
