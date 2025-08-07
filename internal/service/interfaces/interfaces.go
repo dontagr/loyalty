@@ -8,7 +8,8 @@ import (
 
 type (
 	UserStore interface {
-		GetUser(login string, params ...bool) (*models.User, error)
+		GetUser(login string) (*models.User, error)
+		GetTxUser(tx pgx.Tx, login string) (*models.User, error)
 		SaveUser(login string, passwordHash string) error
 	}
 	OrderStore interface {
@@ -26,7 +27,7 @@ type (
 		CommitTX(tx pgx.Tx)
 		GetTotalWithdrawal(userID int) (float64, error)
 		GetWithdraw(orderID string) (*models.Withdrawal, error)
-		SaveWithdraw(withdrawal models.Withdrawal) error
+		SaveWithdraw(tx pgx.Tx, withdrawal models.Withdrawal) error
 		GetWithdrawalListByUserID(userID int) ([]*models.Withdrawal, error)
 	}
 )

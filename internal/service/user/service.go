@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/dontagr/loyalty/internal/service/customerror"
@@ -29,8 +30,12 @@ func (u *Service) HasLogin(login string) (bool, error) {
 	return user.Login == login, nil
 }
 
-func (u *Service) GetUser(login string, params ...bool) (*models.User, error) {
-	return u.store.GetUser(login, params...)
+func (u *Service) GetTxUser(tx pgx.Tx, login string) (*models.User, error) {
+	return u.store.GetTxUser(tx, login)
+}
+
+func (u *Service) GetUser(login string) (*models.User, error) {
+	return u.store.GetUser(login)
 }
 
 func (u *Service) SignUp(login string, password string) (string, error) {

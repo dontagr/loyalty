@@ -35,7 +35,7 @@ func (w *Service) SaveWithdraw(reqW *models.RequestWithdraw, userService *user.S
 		}
 	}(&txErr)
 
-	userDTO, err := userService.GetUser(login, true)
+	userDTO, err := userService.GetTxUser(tx, login)
 	if err != nil {
 		txErr = err
 		return customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", fmt.Errorf("failed get userDTO %v", err))
@@ -57,7 +57,7 @@ func (w *Service) SaveWithdraw(reqW *models.RequestWithdraw, userService *user.S
 		return customerror.NewCustomError(customerror.Unprocessable, "Неверный номер заказа", nil)
 	}
 
-	err = w.store.SaveWithdraw(storeModel.Withdrawal{ID: reqW.Order, Withdrawal: sum, UserID: userDTO.ID})
+	err = w.store.SaveWithdraw(tx, storeModel.Withdrawal{ID: reqW.Order, Withdrawal: sum, UserID: userDTO.ID})
 	if err != nil {
 		txErr = err
 		return customerror.NewCustomError(customerror.Internal, "Внутренняя ошибка сервера", err)

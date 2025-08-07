@@ -111,12 +111,12 @@ func (w *Withdrawal) GetWithdraw(orderID string) (*models.Withdrawal, error) {
 	return &withdrawal, nil
 }
 
-func (w *Withdrawal) SaveWithdraw(withdrawal models.Withdrawal) error {
-	_, err := w.dbpool.Exec(context.Background(), insertWithdrawalSQL, withdrawal.ID, withdrawal.UserID, withdrawal.Withdrawal)
+func (w *Withdrawal) SaveWithdraw(tx pgx.Tx, withdrawal models.Withdrawal) error {
+	_, err := tx.Exec(context.Background(), insertWithdrawalSQL, withdrawal.ID, withdrawal.UserID, withdrawal.Withdrawal)
 	if err != nil {
 		return fmt.Errorf("ошибка при создания списания: %w", err)
 	}
-	_, err = w.dbpool.Exec(context.Background(), decreaseUserBalanceSQL, withdrawal.Withdrawal, withdrawal.UserID)
+	_, err = tx.Exec(context.Background(), decreaseUserBalanceSQL, withdrawal.Withdrawal, withdrawal.UserID)
 	if err != nil {
 		return fmt.Errorf("ошибка при обновлении пользователя: %w", err)
 	}

@@ -55,20 +55,27 @@ func (u *User) addShema(ctx context.Context) error {
 	return err
 }
 
-func (u *User) GetUser(login string, params ...bool) (*models.User, error) {
-	forUpdate := false
-	if len(params) > 0 {
-		forUpdate = params[0]
+func (u *User) GetTxUser(tx pgx.Tx, login string) (*models.User, error) {
+	var user models.User
+	err := tx.QueryRow(context.Background(), searchUserForUpdateSQL, login).Scan(
+		&user.ID,
+		&user.Login,
+		&user.PasswordHash,
+		&user.Balance,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return &models.User{}, nil
+	}
+	if err != nil {
+		return nil, err
 	}
 
+	return &user, nil
+}
+
+func (u *User) GetUser(login string) (*models.User, error) {
 	var user models.User
-	var sql string
-	if forUpdate {
-		sql = searchUserForUpdateSQL
-	} else {
-		sql = searchUserSQL
-	}
-	err := u.dbpool.QueryRow(context.Background(), sql, login).Scan(
+	err := u.dbpool.QueryRow(context.Background(), searchUserSQL, login).Scan(
 		&user.ID,
 		&user.Login,
 		&user.PasswordHash,
