@@ -19,7 +19,7 @@ const (
 	updateOrderStatusSQL           = `UPDATE public.order SET status=$1 WHERE id=$2;`
 	updateOrderStatusAndAccrualSQL = `UPDATE public.order SET status=$1, accrual=$2 WHERE id=$3;`
 	listOrderSQL                   = `SELECT id, user_id, status, accrual, create_dt  FROM public.order WHERE user_id = $1 ORDER BY create_dt DESC`
-	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN ('new', 'processing') AND block != true`
+	listOrderForProcessingSQL      = `SELECT id  FROM public.order WHERE status IN ('NEW', 'PROCESSING') AND block != true`
 	increaseUserBalanceSQL         = `UPDATE public.user SET balance=balance+$1 WHERE ID=$2`
 	selectOrderBlockSQL            = `SELECT block FROM public.order WHERE ID=$1 FOR UPDATE`
 	updateOrderBlockSQL            = `UPDATE public.order SET block=$1 WHERE ID=$2`
