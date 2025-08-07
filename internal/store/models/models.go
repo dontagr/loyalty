@@ -29,10 +29,10 @@ type (
 )
 
 const (
-	StatusNew        = "new"
-	StatusProcessing = "processing"
-	StatusInvalid    = "invalid"
-	StatusProcessed  = "processed"
+	StatusNew        = "NEW"
+	StatusProcessing = "PROCESSING"
+	StatusInvalid    = "INVALID"
+	StatusProcessed  = "PROCESSED"
 )
 
 var statusToString = map[OrderStatus]string{

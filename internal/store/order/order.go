@@ -27,14 +27,14 @@ const (
 DO $$
 BEGIN
 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'statuses') THEN
-	CREATE TYPE statuses AS ENUM ('new', 'processing', 'invalid', 'processed');
+	CREATE TYPE statuses AS ENUM ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED');
 END IF;
 
 CREATE TABLE IF NOT EXISTS public."order" (
 	id bigint NOT NULL,
 	user_id bigint NOT NULL,
 	accrual bigint DEFAULT NUll,
-	status statuses DEFAULT 'new' NOT NULL,
+	status statuses DEFAULT 'NEW' NOT NULL,
 	create_dt timestamptz DEFAULT NOW() NOT NULL,
     block bool DEFAULT false NOT NULL,
 	CONSTRAINT order_pk PRIMARY KEY (id),
