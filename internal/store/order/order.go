@@ -181,12 +181,12 @@ func (o *Order) UpdateOrder(order *models.Order) error {
 			}
 		}(&txErr)
 
-		_, err := o.dbpool.Exec(context.Background(), updateOrderStatusAndAccrualSQL, order.Status, order.Accrual, order.ID)
+		_, err := tx.Exec(context.Background(), updateOrderStatusAndAccrualSQL, order.Status, order.Accrual, order.ID)
 		if err != nil {
 			txErr = err
 			return fmt.Errorf("ошибка при обновлении заказа: %w", err)
 		}
-		_, err = o.dbpool.Exec(context.Background(), increaseUserBalanceSQL, order.Accrual, oldOrder.UserID)
+		_, err = tx.Exec(context.Background(), increaseUserBalanceSQL, order.Accrual, oldOrder.UserID)
 		if err != nil {
 			txErr = err
 			return fmt.Errorf("ошибка при обновлении пользователя: %w", err)
@@ -216,12 +216,12 @@ func (o *Order) BlockOrder(orderID string) bool {
 	}(&txErr)
 
 	var block bool
-	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
+	err := tx.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
 	if err != nil || block {
 		return false
 	}
 
-	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSQL, "TRUE", orderID)
+	_, err = tx.Exec(context.Background(), updateOrderBlockSQL, "TRUE", orderID)
 	return err == nil
 }
 
@@ -243,11 +243,11 @@ func (o *Order) UnblockOrder(orderID string) bool {
 	}(&txErr)
 
 	var block bool
-	err := o.dbpool.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
+	err := tx.QueryRow(context.Background(), selectOrderBlockSQL, orderID).Scan(&block)
 	if err != nil || !block {
 		return false
 	}
 
-	_, err = o.dbpool.Exec(context.Background(), updateOrderBlockSQL, "FALSE", orderID)
+	_, err = tx.Exec(context.Background(), updateOrderBlockSQL, "FALSE", orderID)
 	return err == nil
 }
