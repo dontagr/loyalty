@@ -60,7 +60,11 @@ func (h *Handler) GetOrder(c echo.Context) error {
 	}
 
 	for _, d := range list {
-		h.log.Infof("Найден заказ %s, %s, %d", d.ID, d.Status, *d.Accrual)
+		if d.Accrual != nil {
+			h.log.Infof("Найден заказ %s, %s, %d", d.ID, d.Status, *d.Accrual)
+		} else {
+			h.log.Infof("Найден заказ %s, %s, 0", d.ID, d.Status)
+		}
 	}
 
 	return c.JSON(http.StatusOK, list)
