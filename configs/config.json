@@ -1,0 +1,12 @@
+{
+  "Logging": {
+    "LogLevel": "INFO"
+  },
+  "Security": {
+    "Key": "test"
+  },
+  "Service": {
+    "WorkerLimit": 1,
+    "UpdaterInterval": 10
+  }
+}
